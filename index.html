@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simply Savers</title>
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9661276277974155"
+     crossorigin="anonymous"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 :root{
   --blue:#2563eb; --purple:#7c3aed; --bg:#f8fafc;
@@ -115,7 +121,18 @@ canvas{max-height:260px;}
   <div onclick="exportCSV()">📤 Export CSV</div>
 </div>
 
-<div class="ad-space"></div>
+<!-- AdSense Placeholder -->
+<div class="ad-space">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-9661276277974155"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
 
 <div class="container">
 
@@ -226,7 +243,6 @@ function updateCharts(){
 
     let totalAtDay = 0;
     accs.forEach(a=>{
-      // compound starting at original balance
       totalAtDay += a.balance * Math.pow(1 + a.r/100/n, day);
     });
     totals.push(totalAtDay);
@@ -237,7 +253,6 @@ function updateCharts(){
   totalEl.textContent = "£"+finalTotal.toFixed(2);
   interestEl.textContent = "£"+(finalTotal-finalPrincipal).toFixed(2);
 
-  // Line chart (no dots)
   if(chart) chart.destroy();
   chart = new Chart(chartCanvas,{
     type:"line",
@@ -255,7 +270,6 @@ function updateCharts(){
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}}}
   });
 
-  // Bar chart for all portfolios
   const barLabels = portfolios.map(p=>p.name);
   const barData = portfolios.map(p=>{
     let sum = 0;
