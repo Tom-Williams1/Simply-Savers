@@ -1,313 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simply Savers</title>
-
-<!-- Google AdSense -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9661276277974155"
-     crossorigin="anonymous"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-:root{
-  --blue:#2563eb; --purple:#7c3aed; --bg:#f8fafc;
-  --card:#ffffff; --text:#0f172a; --muted:#64748b;
-  --border:#e5e7eb; --radius:18px;
-}
-body.dark{
-  --bg:#020617; --card:#020617; --text:#e5e7eb;
-  --muted:#94a3b8; --border:#1e293b;
-}
-*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);}
-.hidden{display:none;}
-
-/* TOP BAR */
-.topbar{
-  position:sticky; top:0; z-index:10; background:var(--bg);
-  border-bottom:1px solid var(--border); padding:14px 20px;
-  display:flex; align-items:center; justify-content:space-between;
-}
-.brand{font-weight:800;font-size:22px;}
-.top-right{display:flex; align-items:center; gap:16px;}
-.menu-btn{font-size:22px;background:none;border:none;cursor:pointer;color:black;}
-body.dark .menu-btn{color:white;}
-.menu-panel{
-  position:absolute; right:20px; top:60px; background:var(--card);
-  border:1px solid var(--border); border-radius:14px; min-width:220px;
-  box-shadow:0 20px 40px rgba(0,0,0,.15); overflow:hidden; z-index:100;
-}
-.menu-panel div{padding:14px; cursor:pointer;}
-.menu-panel div:hover{background:rgba(37,99,235,.08);}
-
-/* RANGE BUTTONS TOP BAR */
-.range-card{
-  display:flex; gap:6px; padding:6px 10px; border-radius:12px;
-  background:var(--card); box-shadow:none; margin:0;
-}
-.range-card button{
-  padding:4px 10px; font-size:12px; border-radius:8px;
-  background:var(--bg); color:var(--muted); cursor:pointer; font-weight:600;
-}
-.range-card button.active{
-  background:linear-gradient(135deg,var(--blue),var(--purple)); color:white;
-}
-
-/* CONTAINER */
-.container{max-width:1200px;margin:auto;padding:30px 20px;}
-
-/* DEAD SPACE FOR ADS */
-.ad-space{height:120px;}
-
-/* CARDS & STACK */
-.card{
-  background:var(--card); border-radius:var(--radius); padding:30px; margin-bottom:40px;
-  box-shadow:0 0 20px rgba(37,99,235,.3),0 0 50px rgba(37,99,235,.2),0 0 80px rgba(124,58,237,.15),0 20px 50px rgba(0,0,0,.05);
-}
-.stack{display:flex;flex-direction:column;gap:18px;}
-
-/* INPUTS */
-input,button{width:100%;padding:14px;border-radius:14px;border:1px solid var(--border);font-size:15px;}
-input{background:transparent;color:var(--text);}
-button{background:linear-gradient(135deg,var(--blue),var(--purple));color:white;font-weight:600;border:none;cursor:pointer;}
-
-/* PORTFOLIOS */
-.portfolios{display:flex;gap:12px;overflow-x:auto;margin-bottom:24px;}
-.portfolios button{white-space:nowrap;background:none;border:1px solid var(--border);color:var(--text);padding:10px;cursor:pointer;}
-.portfolios button.active{background:linear-gradient(135deg,var(--blue),var(--purple));color:white;}
-
-/* ACCOUNTS */
-.accounts{display:flex;flex-direction:column;gap:16px;}
-.account{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:12px;align-items:center;}
-.account button{background:#ef4444;border:none;color:white;cursor:pointer;}
-
-/* STATS */
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
-.big{font-size:32px;font-weight:800;}
-.small{font-size:14px;color:var(--muted);}
-canvas{max-height:260px;}
-
-@media(max-width:720px){
-  .stats{grid-template-columns:1fr;}
-  .account{grid-template-columns:1fr 1fr;}
-  .top-right{flex-direction:column; gap:8px;}
-  .range-card{flex-wrap:wrap;justify-content:center;}
-}
-</style>
-</head>
-<body>
-
-<div class="topbar">
-  <div class="brand">Simply Savers</div>
-  <div class="top-right">
-    <div class="range-card" id="rangeCard">
-      <button onclick="setRange(1)">Day</button>
-      <button onclick="setRange(7)">Week</button>
-      <button class="active" onclick="setRange(30)">Month</button>
-      <button onclick="setRange(365)">Year</button>
-      <button onclick="setRange(1825)">5Y</button>
-      <button onclick="setRange(3650)">10Y</button>
-    </div>
-    <button class="menu-btn" onclick="toggleMenu()">☰</button>
-  </div>
-</div>
-
-<div class="menu-panel hidden" id="menu">
-  <div onclick="addPortfolioPrompt()">➕ New portfolio</div>
-  <div onclick="toggleTheme()">🌗 Light / Dark</div>
-  <div onclick="exportCSV()">📤 Export CSV</div>
-</div>
-
-<!-- AdSense Placeholder -->
-<div class="ad-space">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-9661276277974155"
-       data-ad-slot="1234567890"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
-
-<div class="container">
-
-<div class="card stack">
-  <h3>Portfolios</h3>
-  <div class="portfolios" id="portfolioTabs"></div>
-</div>
-
-<div class="card stack">
-  <h3>Add account</h3>
-  <input id="accName" placeholder="Account name">
-  <input id="accBalance" type="number" placeholder="Balance (£)">
-  <input id="accRate" type="number" placeholder="Interest rate (%)">
-  <button onclick="addAccount()">Add account</button>
-</div>
-
-<div class="card">
-  <h3>Accounts</h3>
-  <div class="accounts" id="accounts"></div>
-</div>
-
-<div class="card">
-  <div class="stats">
-    <div><div class="small">Total</div><div class="big" id="totalEl">£0</div></div>
-    <div><div class="small">Interest</div><div class="big" id="interestEl">£0</div></div>
-  </div>
-  <canvas id="chart"></canvas>
-</div>
-
-<div class="card">
-  <h3>Interest Comparison (All Portfolios)</h3>
-  <canvas id="interestChart"></canvas>
-</div>
-
-</div>
-
 <script>
-let portfolios = JSON.parse(localStorage.getItem("savers_portfolios")) || [{name:"Main savings",accounts:[]}];
-let currentPortfolio = 0, range = 30;
-let chart, interestChart;
+function openGuide() {
+  const guideWindow = window.open("", "Guide", "width=500,height=600,scrollbars=yes,resizable=yes");
+  guideWindow.document.write(`
+    <html>
+    <head>
+      <title>Guide - Simply Savers</title>
+      <style>
+        body {
+          font-family: Inter, system-ui, sans-serif;
+          margin: 0; padding: 0;
+          background: #f8fafc; color: #0f172a;
+        }
+        .dark body { background: #020617; color: #e5e7eb; }
+        .container { padding: 20px; max-width: 480px; margin: auto; }
+        h2 { margin-bottom: 10px; }
+        h3 { margin-top: 20px; }
+        p { margin-bottom: 10px; line-height: 1.4; }
+        .disclaimer {
+          margin-top: 20px; padding: 12px; border-top: 1px solid #e5e7eb;
+          font-size: 12px; color: #64748b;
+        }
+        .dark .disclaimer { border-color: #1e293b; color: #94a3b8; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>How to use Simply Savers</h2>
+        <h3>1. Portfolios</h3>
+        <p>Create multiple portfolios to separate your savings goals. Use the <strong>New Portfolio</strong> button in the menu.</p>
+        <h3>2. Accounts</h3>
+        <p>Add accounts to a portfolio by entering a name, balance, and interest rate. Accounts are fully editable and removable.</p>
+        <h3>3. Charts & Stats</h3>
+        <p>Charts show projected growth over your selected range. Use the <strong>Day, Week, Month, Year</strong> buttons to adjust the time frame.</p>
+        <h3>4. Exporting</h3>
+        <p>Use <strong>Export CSV</strong> in the menu to download a report of all accounts and estimated interest.</p>
+        <h3>5. Light / Dark Mode</h3>
+        <p>Toggle themes using the menu button. Your theme preference will persist across sessions.</p>
 
-const chartCanvas = document.getElementById("chart");
-const interestCanvas = document.getElementById("interestChart");
-
-function save(){ localStorage.setItem("savers_portfolios", JSON.stringify(portfolios)) }
-function toggleMenu(){ menu.classList.toggle("hidden") }
-function toggleTheme(){ document.body.classList.toggle("dark") }
-
-// Portfolios
-function addPortfolioPrompt(){
-  const n = prompt("Portfolio name?");
-  if(!n) return;
-  portfolios.push({name:n,accounts:[]});
-  save(); renderPortfolios(); renderAccounts(); updateCharts();
+        <div class="disclaimer">
+          <strong>Security & Disclaimer:</strong> All data is stored locally in your browser. This tool is for personal tracking only and is <strong>not financial advice</strong>. Always verify with your bank or a qualified advisor before making financial decisions.
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
 }
-
-function renderPortfolios(){
-  portfolioTabs.innerHTML = "";
-  portfolios.forEach((p,i)=>{
-    const btn = document.createElement("button");
-    btn.textContent = p.name;
-    if(i===currentPortfolio) btn.classList.add("active");
-    btn.onclick = ()=>{ currentPortfolio=i; renderPortfolios(); renderAccounts(); updateCharts(); }
-    portfolioTabs.appendChild(btn);
-  });
-}
-
-// Accounts
-function addAccount(){
-  const b=+accBalance.value, r=+accRate.value, n=accName.value;
-  if(!n||!b||!r) return alert("Complete all fields");
-  portfolios[currentPortfolio].accounts.push({name:n,balance:b,r:r});
-  accName.value=accBalance.value=accRate.value="";
-  save(); renderAccounts(); updateCharts();
-}
-
-function renderAccounts(){
-  accounts.innerHTML="";
-  portfolios[currentPortfolio].accounts.forEach((a,i)=>{
-    const div = document.createElement("div"); div.className="account";
-    div.innerHTML=`<div>${a.name}</div><div>£${a.balance.toFixed(2)}</div><div>${a.r}%</div>`;
-    const btn=document.createElement("button"); btn.textContent="✕";
-    btn.onclick=()=>{ portfolios[currentPortfolio].accounts.splice(i,1); save(); renderAccounts(); updateCharts(); }
-    div.appendChild(btn);
-    accounts.appendChild(div);
-  });
-}
-
-// Charts
-function setRange(d){
-  range=d;
-  document.querySelectorAll("#rangeCard button").forEach(b=>b.classList.remove("active"));
-  event.target.classList.add("active");
-  updateCharts();
-}
-
-function updateCharts(){
-  const accs = portfolios[currentPortfolio].accounts;
-  const n = 365; // daily compounding
-  const steps = Math.min(range, 365); // number of points
-
-  const labels = [];
-  const totals = [];
-
-  for(let i=0; i<=steps; i++){
-    const day = i*(range/steps);
-    labels.push(`+${Math.round(day)}d`);
-
-    let totalAtDay = 0;
-    accs.forEach(a=>{
-      totalAtDay += a.balance * Math.pow(1 + a.r/100/n, day);
-    });
-    totals.push(totalAtDay);
-  }
-
-  const finalTotal = totals[totals.length-1];
-  const finalPrincipal = accs.reduce((s,a)=>s+a.balance,0);
-  totalEl.textContent = "£"+finalTotal.toFixed(2);
-  interestEl.textContent = "£"+(finalTotal-finalPrincipal).toFixed(2);
-
-  if(chart) chart.destroy();
-  chart = new Chart(chartCanvas,{
-    type:"line",
-    data:{ 
-      labels:labels,
-      datasets:[{
-        data: totals,
-        borderColor:"#2563eb",
-        borderWidth:3,
-        fill:false,
-        pointRadius:0,
-        tension:0.3
-      }]
-    },
-    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}}}
-  });
-
-  const barLabels = portfolios.map(p=>p.name);
-  const barData = portfolios.map(p=>{
-    let sum = 0;
-    p.accounts.forEach(a=>{
-      sum += a.balance * Math.pow(1 + a.r/100/n, range) - a.balance;
-    });
-    return sum.toFixed(2);
-  });
-
-  if(interestChart) interestChart.destroy();
-  interestChart = new Chart(interestCanvas,{
-    type:'bar',
-    data:{ labels:barLabels, datasets:[{label:'Estimated Interest (£)', data:barData, backgroundColor:barLabels.map((_,i)=>`rgba(37,99,235,${0.5+i*0.1})`)}] },
-    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}}}
-  });
-}
-
-// Export CSV
-function exportCSV(){
-  const accs=[];
-  const n = 365;
-  portfolios.forEach(p=>{
-    p.accounts.forEach(a=>{
-      const interest = a.balance * Math.pow(1 + a.r/100/n, range) - a.balance;
-      accs.push([p.name,a.name,a.balance,a.r,interest.toFixed(2)]);
-    })
-  });
-  if(!accs.length) return alert("No accounts to export");
-  let csv="Portfolio,Account,Balance,Interest Rate %,Estimated Interest\n";
-  accs.forEach(r=>{ csv+=r.join(",")+"\n"; });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a"); a.href=url; a.download="savers.csv"; a.click();
-  URL.revokeObjectURL(url);
-}
-
-// Initialize
-renderPortfolios(); renderAccounts(); updateCharts();
 </script>
-</body>
-</html>
